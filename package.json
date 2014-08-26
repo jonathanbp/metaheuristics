@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "lodash-node": "~2.4.1",
+    "paralleljs": "~0.2.1",
+    "q": "~1.0.0"
+  },
+  "devDependencies": {
+    "expect.js": "~0.2.0"
+  }
+}
