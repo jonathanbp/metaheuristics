@@ -73,7 +73,9 @@ class SimulatedAnnealing
 
 # Evolutionary algorithm scaffolding.
 #
-# Should be fed problems of the form TODO
+# Should be fed problems of the form 
+# 
+# TODO recombine, mutate, makeRandomSolution, fitness
 
 class Evolution
 
@@ -180,9 +182,101 @@ class Evolution
 
 class DifferentialEvolution
 
+  findFittest: (population) ->
+    population.reduce(((best, current) -> if current.fitness < best.fitness then current else best), { fitness: Number.MAX_VALUE })
+
   run: (problem, params = {}) ->
 
+    deferred = Q.defer()
 
+    params = _.merge(
+      {
+        generations: 10,
+        populationSize: 50,
+        
+        # DE/best/1/bin as default
+        selectionStrategy: 'best' # best/rand
+        numberOfDifferenceIndividuals: 1
+        recombinationStrategy: 'bin' # bin = binomial, exp = exponential (n/a)
+
+        scalingFactor: .5 # should be [0,2]
+
+        stopAfterUnimprovedGenerations: 300
+      },
+      params
+    )
+
+    # Generate initial population of random solutions. And add fitness to each solution.
+    population = [0..params.populationSize-1].map (i) -> problem.makeRandomSolution()
+    population.forEach (solution) -> solution.fitness = problem.fitness(solution)
+
+    # Run main loop
+    unimprovedGenerations = 0
+    generation = 0
+    previousBest = Number.MAX_VALUE
+    while unimprovedGenerations < params.stopAfterUnimprovedGenerations and generation < params.generations
+      
+      currentBest = @findFittest(population)
+      if currentBest.fitness >= previousBest.fitness
+        unimprovedGenerations++
+      previousBest = currentBest
+
+      population = population.map =>
+
+        # THIS IS INNER LOOP
+
+        #
+        # Perform mutation
+        #
+        
+        # TODO individuals must be different
+
+        # - Find individual from which to start selection process
+        chosenIndividual = if params.selectionStrategy is 'rand'
+          population[Math.round(Math.random()*(population.length-1))]
+        else # best
+          currentBest
+        
+        # - Randomly find individuals to mutate with
+        chosenDifferenceIndividuals = [0..params.numberOfDifferenceIndividuals*2-1].map -> population[Math.round(Math.random()*(population.length-1))]
+
+        console.log chosenDifferenceIndividuals
+
+        # xnew_i = xchosen_i + scaling * ( diff1_i - diff2_i ) - repeat scaling w params.numberOfDifferenceIndividuals * 2
+        scaledMutation = (while (([diff1, diff2] = [chosenDifferenceIndividuals.shift(),chosenDifferenceIndividuals.shift()]).indexOf(undefined) < 0)
+          problem.multiply(params.scalingFactor, problem.subtract(diff1, diff2))
+        ).reduce (memo, scaled) -> problem.add(memo, scaled) 
+
+        newIndividual = problem.add(chosenIndividual, scaledMutation) 
+
+
+        #
+        # - Perform crossover
+        #
+        newIndividual = problem.recombine(newIndividual, chosenIndividual, params)
+
+        # Evaluate new individual
+        newIndividual.fitness = problem.fitness(newIndividual)
+
+        
+        #console.log currentBest, newIndividual
+        #console.log newIndividual.fitness, chosenIndividual.fitness 
+        
+        # Perform selection operation
+        if newIndividual.fitness < chosenIndividual.fitness 
+          newIndividual
+        else
+          TODO this is bad as more and more of this guy will be in pop
+          chosenIndividual
+
+      # Next generation
+      generation++
+
+    
+
+    deferred.resolve @findFittest(population)
+
+    deferred.promise
 
 # Exports.
 exports.SimulatedAnnealing = new SimulatedAnnealing()

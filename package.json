@@ -5,6 +5,7 @@
     "q": "~1.0.0"
   },
   "devDependencies": {
+    "coffee-script": "^1.7.1",
     "expect.js": "~0.2.0"
   }
 }
