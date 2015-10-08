@@ -1,4 +1,3 @@
-mt  = require 'microtime'
 Q   = require 'q'
 _   = require 'lodash'
 
@@ -106,10 +105,10 @@ out = console.log
 
 run = (algorithm, problem) ->
   deferred = Q.defer()
-  t0 = mt.now()
+  t0 = Date.now()
   algorithm.run(problem).then(
     (champion) ->
-      t1 = mt.now()
+      t1 = Date.now()
       deferred.resolve({ algorithm: algorithm, problem: problem, champion: champion, time: (t1-t0)/1000 })
   )
   deferred.promise
