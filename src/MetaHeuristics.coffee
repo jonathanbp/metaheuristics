@@ -22,7 +22,12 @@ Q        = require "q"
 # }
 class SimulatedAnnealing
 
-  run: (problem, params = {  }, progress, deferred = Q.defer()) ->
+  constructor: ->
+    @name = "SimulatedAnnealing"
+
+  run: (problem, params, progress) ->
+
+    deferred = Q.defer()
 
     params = _.merge({ steps: 100, temp: 1000, cdr: .999 }, params)
 
@@ -78,6 +83,9 @@ class SimulatedAnnealing
 # TODO recombine, mutate, makeRandomSolution, fitness
 
 class Evolution
+
+  constructor: ->
+    @name = "Evolution"
 
   evolutionize = (problem, params, population, generation, progress, bestFitness, reign = 0, deferred = Q.defer()) ->
 
@@ -139,7 +147,7 @@ class Evolution
       population.push parent for parent in parents
 
       # Next generation.
-      evolutionize(problem, params, population, --generation, progress, best.fitness, (if best.fitness is bestFitness then reign+1 else 0), deferred)
+      evolutionize(problem, params, population, --generation, progress, best.fitness, (if Math.abs(best.fitness - bestFitness) < params.improvementThreshold then reign+1 else 0), deferred)
 
     # Return
     deferred.promise
@@ -150,7 +158,7 @@ class Evolution
 
     params = _.merge(
       {
-        generations: 1000,
+        generations: 2000,
         populationSize: 200,
         selection: "deterministic",
         parents: 20,
@@ -158,6 +166,7 @@ class Evolution
         tournamentSize: 10,
         recombinationProbability: .5,
         stopAfterUnimprovedGenerations: 300
+        improvementThreshold: 1e-6
       },
       params
     )
@@ -182,26 +191,30 @@ class Evolution
 
 class DifferentialEvolution
 
+  constructor: ->
+    @name = "DifferentialEvolution"
+
   findFittest: (population) ->
     population.reduce(((best, current) -> if current.fitness < best.fitness then current else best), { fitness: Number.MAX_VALUE })
 
-  run: (problem, params = {}) ->
+  run: (problem, params, progress) ->
 
     deferred = Q.defer()
 
     params = _.merge(
       {
-        generations: 10,
-        populationSize: 50,
+        generations: 300,
+        populationSize: 100,
         
-        # DE/best/1/bin as default
-        selectionStrategy: 'best' # best/rand
+        # DE/rand/1/bin as default
+        selectionStrategy: 'rand' # rand
         numberOfDifferenceIndividuals: 1
         recombinationStrategy: 'bin' # bin = binomial, exp = exponential (n/a)
 
         scalingFactor: .5 # should be [0,2]
 
-        stopAfterUnimprovedGenerations: 300
+        stopAfterUnimprovedGenerations: 20
+        improvementThreshold: 1e-6
       },
       params
     )
@@ -217,8 +230,10 @@ class DifferentialEvolution
     while unimprovedGenerations < params.stopAfterUnimprovedGenerations and generation < params.generations
       
       currentBest = @findFittest(population)
-      if currentBest.fitness >= previousBest.fitness
+      if Math.abs(currentBest.fitness - previousBest.fitness) < params.improvementThreshold
         unimprovedGenerations++
+      else
+        unimprovedGenerations = 0
       previousBest = currentBest
 
       population = population.map =>
@@ -234,13 +249,9 @@ class DifferentialEvolution
         # - Find individual from which to start selection process
         chosenIndividual = if params.selectionStrategy is 'rand'
           population[Math.round(Math.random()*(population.length-1))]
-        else # best
-          currentBest
         
         # - Randomly find individuals to mutate with
         chosenDifferenceIndividuals = [0..params.numberOfDifferenceIndividuals*2-1].map -> population[Math.round(Math.random()*(population.length-1))]
-
-        console.log chosenDifferenceIndividuals
 
         # xnew_i = xchosen_i + scaling * ( diff1_i - diff2_i ) - repeat scaling w params.numberOfDifferenceIndividuals * 2
         scaledMutation = (while (([diff1, diff2] = [chosenDifferenceIndividuals.shift(),chosenDifferenceIndividuals.shift()]).indexOf(undefined) < 0)
@@ -258,6 +269,9 @@ class DifferentialEvolution
         # Evaluate new individual
         newIndividual.fitness = problem.fitness(newIndividual)
 
+        # Add extra properties to new individual
+        newIndividual.generation = generation
+
         
         #console.log currentBest, newIndividual
         #console.log newIndividual.fitness, chosenIndividual.fitness 
@@ -266,7 +280,7 @@ class DifferentialEvolution
         if newIndividual.fitness < chosenIndividual.fitness 
           newIndividual
         else
-          TODO this is bad as more and more of this guy will be in pop
+          # TODO this is bad as more and more of this guy will be in pop
           chosenIndividual
 
       # Next generation
@@ -274,11 +288,14 @@ class DifferentialEvolution
 
     
 
-    deferred.resolve @findFittest(population)
+    champion = @findFittest(population)
+    champion.totalGenerations = generation
+
+    deferred.resolve champion
 
     deferred.promise
 
 # Exports.
-exports.SimulatedAnnealing = new SimulatedAnnealing()
-exports.Evolution = new Evolution()
-exports.DifferentialEvolution = new DifferentialEvolution()
+exports.SimulatedAnnealing = SimulatedAnnealing
+exports.Evolution = Evolution
+exports.DifferentialEvolution = DifferentialEvolution
