@@ -203,7 +203,7 @@ class DifferentialEvolution
 
     params = _.merge(
       {
-        generations: 500,
+        generations: 5000,
         populationSize: 200,
         
         # DE/rand/1/bin as default
@@ -213,7 +213,7 @@ class DifferentialEvolution
 
         scalingFactor: .5 # should be [0,2]
 
-        stopAfterUnimprovedGenerations: 20
+        stopAfterUnimprovedGenerations: 50
         improvementThreshold: 1e-6
       },
       params
