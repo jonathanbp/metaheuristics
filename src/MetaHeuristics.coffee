@@ -1,4 +1,4 @@
-_        = require 'lodash-node'
+_        = require 'lodash'
 Parallel = require "paralleljs"
 Q        = require "q"
 

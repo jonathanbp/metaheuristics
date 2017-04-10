@@ -113,6 +113,7 @@ describe "SimulatedAnnealing", () ->
           catch e
             done(e)
       )
+      return
   
   describe "run w Matayas function", () ->
     it "finds a global minimum at (0,0)", (done) ->
@@ -126,6 +127,7 @@ describe "SimulatedAnnealing", () ->
           catch e
             done(e)
       )
+      return
 
   describe "run w Booths function", () ->
     it "finds a global minimum at (1,3)", (done) ->
@@ -139,6 +141,7 @@ describe "SimulatedAnnealing", () ->
           catch e
             done(e)
       )
+      return
 
 describe "Evolution", () ->
   
@@ -156,6 +159,7 @@ describe "Evolution", () ->
           catch e
             done(e)
       )
+      return
   
   describe "run w Matayas function", () ->
     it "finds a global minimum at (0,0)", (done) ->
@@ -168,6 +172,7 @@ describe "Evolution", () ->
           catch e
             done(e)
       )
+      return
 
   describe "run w Booths function", () ->
     it "finds a global minimum at (1,3)", (done) ->
@@ -181,6 +186,7 @@ describe "Evolution", () ->
           catch e
             done(e)
       )
+      return
 
 
 describe "DifferentialEvolution", () ->
@@ -188,7 +194,7 @@ describe "DifferentialEvolution", () ->
   de = new mh.DifferentialEvolution()
 
   describe "run w Ackleys function", () ->
-    it "finds a global minimum at (0,0)", (done) -> 
+    it "finds a global minimum at (0,0)", (done) ->
       de.run(ackleys).then(
         (winner) ->
           try
@@ -199,6 +205,7 @@ describe "DifferentialEvolution", () ->
           catch e
             done(e)
       )
+      return
   
   describe "run w Matayas function", () ->
     it "finds a global minimum at (0,0)", (done) ->
@@ -212,6 +219,7 @@ describe "DifferentialEvolution", () ->
           catch e
             done(e)
       )
+      return
 
   describe "run w Booths function", () ->
     it "finds a global minimum at (1,3)", (done) ->
@@ -225,4 +233,5 @@ describe "DifferentialEvolution", () ->
           catch e
             done(e)
       )
+      return
 

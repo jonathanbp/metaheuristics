@@ -7,7 +7,6 @@ env           = require 'gulp-env'
 gulp          = require 'gulp'
 gutil         = require 'gulp-util'
 istanbul      = require('gulp-coffee-istanbul')
-vinylPaths    = require 'vinyl-paths'
 mocha         = require 'gulp-mocha'
 
 sources =
@@ -17,16 +16,12 @@ sources =
 destinations =
   js:     './dist/'
 
+gulp.task 'clean', -> del(destinations.js)
 
 gulp.task 'lint', ->
   gulp.src(sources.coffee)
   .pipe(coffeelint())
   .pipe(coffeelint.reporter())
-
-gulp.task 'clean', ->
-  gulp.src(['./dist/'], {read: false}).pipe(vinylPaths(del))
-
-
 
 gulp.task 'compile', ->
   gulp.src(sources.coffee)
@@ -39,6 +34,7 @@ gulp.task 'test', ->
   opts =
     timeout: 10000
     reporter: 'spec'
+    compilers: 'coffee:coffee-script/register'
 
   if 'g' of gutil.env
     # -g (grep) parameter was passed
@@ -47,6 +43,7 @@ gulp.task 'test', ->
   # Simply run the tests
   withoutCov = ->
     gulp.src(sources.tests, {read: false})
+    .pipe(coffee({bare: true}).on('error', gutil.log))
     .pipe(mocha(opts))
     .once('error', (err) ->
       console.error err
@@ -55,7 +52,6 @@ gulp.task 'test', ->
     .once('end', ->
       process.exit()
     )
-
 
   # Run tests with test coverage calculations
   withCov = ->
