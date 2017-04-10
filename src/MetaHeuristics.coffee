@@ -29,7 +29,7 @@ class SimulatedAnnealing
 
     deferred = Q.defer()
 
-    params = _.merge({ steps: 100, temp: 1000, cdr: .999 }, params)
+    params = _.merge({ steps: 500, temp: 5000, cdr: .999 }, params)
 
     temp = params.temp
     steps = params.steps
@@ -58,7 +58,7 @@ class SimulatedAnnealing
         neighbour.fitness = problem.fitness(neighbour)
 
         # minimization problem
-        if neighbour.fitness < current.fitness or P(current, neighbour, temp)
+        if P(current, neighbour, temp)
           current = neighbour
 
         # remember champion (optimization)
@@ -203,8 +203,8 @@ class DifferentialEvolution
 
     params = _.merge(
       {
-        generations: 300,
-        populationSize: 100,
+        generations: 500,
+        populationSize: 200,
         
         # DE/rand/1/bin as default
         selectionStrategy: 'rand' # rand
