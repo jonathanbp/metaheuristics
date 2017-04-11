@@ -3,23 +3,24 @@ Parallel = require "paralleljs"
 Q        = require "q"
 
 
-
+# ## Simulated Annealing
+#
 # A (simple) simulated annealing algorithm scaffolding.
 #
 # Feed it problems of the form:
 #
-# {
-#  # Generate a random solution.
-#  # Will be called in the initialization phase of the algorithm.
-#  makeRandomSolution: () -> ...
+#     {
+#       # Generate a random solution.
+#       # Will be called in the initialization phase of the algorithm.
+#       makeRandomSolution: () -> ...
 #
-#  # Find a "close" neighbour to the given solution.
-#  findNeighbour: (solution) ->  ...
+#       # Find a "close" neighbour to the given solution.
+#       findNeighbour: (solution) ->  ...
 #
-#  # Calculate the fitness of the given solution.
-#  # For numerical functions this will be the function itself.
-#  fitness: (solution) -> ...
-# }
+#       # Calculate the fitness of the given solution.
+#       # For numerical functions this will be the function itself.
+#       fitness: (solution) -> ...
+#     }
 class SimulatedAnnealing
 
   constructor: ->

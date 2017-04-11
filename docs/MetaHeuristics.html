@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>MetaHeuristics.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>MetaHeuristics.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>_        = <span class="hljs-built_in">require</span> <span class="hljs-string">'lodash'</span>
+Parallel = <span class="hljs-built_in">require</span> <span class="hljs-string">"paralleljs"</span>
+Q        = <span class="hljs-built_in">require</span> <span class="hljs-string">"q"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <h2 id="simulated-annealing">Simulated Annealing</h2>
+<p>A (simple) simulated annealing algorithm scaffolding.</p>
+<p>Feed it problems of the form:</p>
+<pre><code>{
+  <span class="hljs-comment"># Generate a random solution.</span>
+  <span class="hljs-comment"># Will be called in the initialization phase of the algorithm.</span>
+  <span class="hljs-attribute">makeRandomSolution</span>: <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span> ...
+
+  <span class="hljs-comment"># Find a "close" neighbour to the given solution.</span>
+  <span class="hljs-attribute">findNeighbour</span>: <span class="hljs-function"><span class="hljs-params">(solution)</span> -&gt;</span>  ...
+
+  <span class="hljs-comment"># Calculate the fitness of the given solution.</span>
+  <span class="hljs-comment"># For numerical functions this will be the function itself.</span>
+  <span class="hljs-attribute">fitness</span>: <span class="hljs-function"><span class="hljs-params">(solution)</span> -&gt;</span> ...
+}
+</code></pre>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SimulatedAnnealing</span></span>
+
+  <span class="hljs-attribute">constructor</span>:<span class="hljs-function"> -&gt;</span>
+    <span class="hljs-property">@name</span> = <span class="hljs-string">"SimulatedAnnealing"</span>
+
+  <span class="hljs-attribute">run</span>: <span class="hljs-function"><span class="hljs-params">(problem, params, progress)</span> -&gt;</span>
+
+    deferred = Q.defer()
+
+    params = _.merge({ <span class="hljs-attribute">steps</span>: <span class="hljs-number">500</span>, <span class="hljs-attribute">temp</span>: <span class="hljs-number">5000</span>, <span class="hljs-attribute">cdr</span>: <span class="hljs-number">.999</span> }, params)
+
+    temp = params.temp
+    steps = params.steps</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>the probability function which determines whether to move to neighbour
+even when it isnt a better solution</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-function"><span class="hljs-title">P</span> = <span class="hljs-params">(current, neighbour, temp)</span> -&gt;</span>
+      Math.random() &lt; Math.exp((current.fitness-neighbour.fitness)/temp)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>starting point is a random solution</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    current = problem.makeRandomSolution()</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>remember temp and fitness on solutions</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    current.temp = temp
+    current.fitness = problem.fitness(current)
+    champion = current</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>while there is still some heat left, iterate</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">while</span> temp &gt; <span class="hljs-number">1.5</span>
+      <span class="hljs-keyword">for</span> step <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>.steps]</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>find neighbour (and remember its fitness
+and at which temperature it was found</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        neighbour = problem.findNeighbour(current)
+        neighbour.temp = temp
+        neighbour.fitness = problem.fitness(neighbour)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>minimization problem</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> P(current, neighbour, temp)
+          current = neighbour</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>remember champion (optimization)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> current.fitness &lt; champion.fitness
+          champion = current
+
+        progress?({ <span class="hljs-attribute">temperature</span>: temp, <span class="hljs-attribute">best</span>: champion })</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>slowly cool down (cdr is cool-down ratio)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      temp *= params.cdr</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>return</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    deferred.resolve(champion)
+    deferred.promise</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>Evolutionary algorithm scaffolding.</p>
+<p>Should be fed problems of the form </p>
+<p>TODO recombine, mutate, makeRandomSolution, fitness</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Evolution</span></span>
+
+  <span class="hljs-attribute">constructor</span>:<span class="hljs-function"> -&gt;</span>
+    <span class="hljs-property">@name</span> = <span class="hljs-string">"Evolution"</span>
+
+  <span class="hljs-function"><span class="hljs-title">evolutionize</span> = <span class="hljs-params">(problem, params, population, generation, progress, bestFitness, reign = <span class="hljs-number">0</span>, deferred = Q.defer())</span> -&gt;</span>
+
+    <span class="hljs-keyword">if</span> generation &lt;= <span class="hljs-number">0</span> <span class="hljs-keyword">or</span> reign &gt; params.stopAfterUnimprovedGenerations
+      deferred.resolve(population)
+    <span class="hljs-keyword">else</span>
+      parents = []
+      <span class="hljs-keyword">switch</span> params.selection
+        <span class="hljs-keyword">when</span> <span class="hljs-string">"deterministic"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>DETERMINISTIC SELECTION
+Select top-tier solution as parents.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          parents = _.sortBy(population, <span class="hljs-string">"fitness"</span>).slice(<span class="hljs-number">0</span>, params.parents)
+          best = parents[<span class="hljs-number">0</span>]
+          progress?({ <span class="hljs-attribute">generation</span>: params.generations - generation, <span class="hljs-attribute">best</span>: best, <span class="hljs-attribute">reign</span>: reign })</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>-or- no parents survive - choose top-tier from most recent generation (not implemented)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">when</span> <span class="hljs-string">"stochastic"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>STOCHASTIC SELECTION</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          parents = <span class="hljs-keyword">if</span> params.elites &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> _.sortBy(population, <span class="hljs-string">"fitness"</span>).slice(<span class="hljs-number">0</span>, params.elites) <span class="hljs-keyword">else</span> []</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>tournament #1 (n solutions are chosen in n tournaments - winner gets to be parent)
+-or- tournament #2 (all solutions are eval’ed against a subset of pop - top-tier n chosen as parents)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          parentCandidates = _.without(population, parents)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>TODO can be made async</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          <span class="hljs-keyword">for</span> solution <span class="hljs-keyword">in</span> parentCandidates
+            <span class="hljs-keyword">do</span> <span class="hljs-function"><span class="hljs-params">(solution)</span> -&gt;</span>
+              <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>.params.tournamentSize-<span class="hljs-number">1</span>]
+                solution.score ?= <span class="hljs-number">0</span>
+                <span class="hljs-keyword">if</span> solution.fitness &lt; population[Math.round(Math.random()*(population.length-<span class="hljs-number">1</span>))].fitness
+                  solution.score += <span class="hljs-number">1</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>— choose parents as those with highest score</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          _.sortBy(parentCandidates, <span class="hljs-string">"score"</span>).slice(-(params.parents - parents.length)).forEach(
+            <span class="hljs-function"><span class="hljs-params">(p)</span> -&gt;</span>
+              <span class="hljs-keyword">delete</span> p.score
+              parents.push(p)
+          )
+          best = _.sortBy(parents, <span class="hljs-string">"fitness"</span>)[<span class="hljs-number">0</span>]
+          progress?({ <span class="hljs-attribute">generation</span>: params.generations - generation, <span class="hljs-attribute">best</span>: best, <span class="hljs-attribute">reign</span>: reign })</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Create offspring. Recombine or mutate? Compute fitness.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-function"><span class="hljs-title">mate</span> = <span class="hljs-params">(parents)</span> -&gt;</span>
+        parents = _.shuffle(parents)
+        <span class="hljs-keyword">if</span> Math.random() &gt; params.recombinationProbability</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>Re-combine (problem may choose the number of parents used to produce offspring).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          child = problem.recombine.apply(<span class="hljs-keyword">this</span>, parents)
+        <span class="hljs-keyword">else</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>Mutate to generate offspring.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          child = problem.mutate(parents[<span class="hljs-number">0</span>])
+
+        child.generation = (params.generations - generation)
+        child.fitness = problem.fitness(child)
+        child</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>TODO this could be parallelized</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-function"><span class="hljs-title">population</span> = <span class="hljs-params">([<span class="hljs-number">0.</span>.(params.populationSize-parents.length)].map(() -&gt; parents))</span>.<span class="hljs-title">map</span><span class="hljs-params">(mate)</span>
+
+</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>Allow solutions chosen as parents to survive to next generation.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      population.push parent <span class="hljs-keyword">for</span> parent <span class="hljs-keyword">in</span> parents</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>Next generation.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      evolutionize(problem, params, population, --generation, progress, best.fitness, (<span class="hljs-keyword">if</span> Math.abs(best.fitness - bestFitness) &lt; params.improvementThreshold <span class="hljs-keyword">then</span> reign+<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>), deferred)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>Return</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    deferred.promise
+
+
+
+  <span class="hljs-attribute">run</span>: <span class="hljs-function"><span class="hljs-params">(problem, params, progress)</span> -&gt;</span>
+
+    params = _.merge(
+      {
+        <span class="hljs-attribute">generations</span>: <span class="hljs-number">2000</span>,
+        <span class="hljs-attribute">populationSize</span>: <span class="hljs-number">200</span>,
+        <span class="hljs-attribute">selection</span>: <span class="hljs-string">"deterministic"</span>,
+        <span class="hljs-attribute">parents</span>: <span class="hljs-number">20</span>,
+        <span class="hljs-attribute">elites</span>: <span class="hljs-number">5</span>,
+        <span class="hljs-attribute">tournamentSize</span>: <span class="hljs-number">10</span>,
+        <span class="hljs-attribute">recombinationProbability</span>: <span class="hljs-number">.5</span>,
+        <span class="hljs-attribute">stopAfterUnimprovedGenerations</span>: <span class="hljs-number">300</span>
+        <span class="hljs-attribute">improvementThreshold</span>: <span class="hljs-number">1e-6</span>
+      },
+      params
+    )</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>Generate initial population of random solutions. And add fitness to each solution.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    population = [<span class="hljs-number">0.</span>.params.populationSize-<span class="hljs-number">1</span>].map <span class="hljs-function"><span class="hljs-params">(i)</span> -&gt;</span> problem.makeRandomSolution()
+    population.forEach <span class="hljs-function"><span class="hljs-params">(solution)</span> -&gt;</span> solution.fitness = problem.fitness(solution)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p>Run evolution.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    deferred = Q.defer()
+    evolutionize(problem, params, population, params.generations, progress)
+    .<span class="hljs-keyword">then</span>(
+      <span class="hljs-function"><span class="hljs-params">(population)</span> -&gt;</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>Resolve w fittest solution in final population.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        deferred.resolve(_.sortBy(population, <span class="hljs-string">"fitness"</span>)[<span class="hljs-number">0</span>])
+    )</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p>Return promise</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    deferred.promise
+
+
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DifferentialEvolution</span></span>
+
+  <span class="hljs-attribute">constructor</span>:<span class="hljs-function"> -&gt;</span>
+    <span class="hljs-property">@name</span> = <span class="hljs-string">"DifferentialEvolution"</span>
+
+  <span class="hljs-attribute">findFittest</span>: <span class="hljs-function"><span class="hljs-params">(population)</span> -&gt;</span>
+    population.reduce<span class="hljs-function"><span class="hljs-params">(((best, current) -&gt; <span class="hljs-keyword">if</span> current.fitness &lt; best.fitness <span class="hljs-keyword">then</span> current <span class="hljs-keyword">else</span> best), { fitness: Number.MAX_VALUE })</span>
+
+  <span class="hljs-title">run</span>: <span class="hljs-params">(problem, params, progress)</span> -&gt;</span>
+
+    deferred = Q.defer()
+
+    params = _.merge(
+      {
+        <span class="hljs-attribute">generations</span>: <span class="hljs-number">5000</span>,
+        <span class="hljs-attribute">populationSize</span>: <span class="hljs-number">200</span>,</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>DE/rand/1/bin as default</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-attribute">selectionStrategy</span>: <span class="hljs-string">'rand'</span> <span class="hljs-comment"># rand</span>
+        <span class="hljs-attribute">numberOfDifferenceIndividuals</span>: <span class="hljs-number">1</span>
+        <span class="hljs-attribute">recombinationStrategy</span>: <span class="hljs-string">'bin'</span> <span class="hljs-comment"># bin = binomial, exp = exponential (n/a)</span>
+
+        <span class="hljs-attribute">scalingFactor</span>: <span class="hljs-number">.5</span> <span class="hljs-comment"># should be [0,2]</span>
+
+        <span class="hljs-attribute">stopAfterUnimprovedGenerations</span>: <span class="hljs-number">50</span>
+        <span class="hljs-attribute">improvementThreshold</span>: <span class="hljs-number">1e-6</span>
+      },
+      params
+    )</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>Generate initial population of random solutions. And add fitness to each solution.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    population = [<span class="hljs-number">0.</span>.params.populationSize-<span class="hljs-number">1</span>].map <span class="hljs-function"><span class="hljs-params">(i)</span> -&gt;</span> problem.makeRandomSolution()
+    population.forEach <span class="hljs-function"><span class="hljs-params">(solution)</span> -&gt;</span> solution.fitness = problem.fitness(solution)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-32">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <p>Run main loop</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    unimprovedGenerations = <span class="hljs-number">0</span>
+    generation = <span class="hljs-number">0</span>
+    previousBest = Number.MAX_VALUE
+    <span class="hljs-keyword">while</span> unimprovedGenerations &lt; params.stopAfterUnimprovedGenerations <span class="hljs-keyword">and</span> generation &lt; params.generations
+      
+      currentBest = <span class="hljs-property">@findFittest</span>(population)
+      <span class="hljs-keyword">if</span> Math.abs(currentBest.fitness - previousBest.fitness) &lt; params.improvementThreshold
+        unimprovedGenerations++
+      <span class="hljs-keyword">else</span>
+        unimprovedGenerations = <span class="hljs-number">0</span>
+      previousBest = currentBest
+
+      population = population.map<span class="hljs-function"> =&gt;</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p>THIS IS INNER LOOP</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-34">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-34">&#182;</a>
+              </div>
+              <p>Perform mutation</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-35">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-35">&#182;</a>
+              </div>
+              <p>TODO individuals must be different</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-36">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-36">&#182;</a>
+              </div>
+              <ul>
+<li>Find individual from which to start selection process</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        chosenIndividual = <span class="hljs-keyword">if</span> params.selectionStrategy <span class="hljs-keyword">is</span> <span class="hljs-string">'rand'</span>
+          population[Math.round(Math.random()*(population.length-<span class="hljs-number">1</span>))]</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-37">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <ul>
+<li>Randomly find individuals to mutate with</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        chosenDifferenceIndividuals = [<span class="hljs-number">0.</span>.params.numberOfDifferenceIndividuals*<span class="hljs-number">2</span>-<span class="hljs-number">1</span>].map<span class="hljs-function"> -&gt;</span> population[Math.round(Math.random()*(population.length-<span class="hljs-number">1</span>))]</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-38">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-38">&#182;</a>
+              </div>
+              <p>xnew_i = xchosen_i + scaling <em> ( diff1_i - diff2_i ) - repeat scaling w params.numberOfDifferenceIndividuals </em> 2</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        scaledMutation = (<span class="hljs-keyword">while</span> (([diff1, diff2] = [chosenDifferenceIndividuals.shift(),chosenDifferenceIndividuals.shift()]).indexOf(<span class="hljs-literal">undefined</span>) &lt; <span class="hljs-number">0</span>)
+          problem.multiply(params.scalingFactor, problem.subtract(diff1, diff2))
+        ).reduce <span class="hljs-function"><span class="hljs-params">(memo, scaled)</span> -&gt;</span> problem.add(memo, scaled) 
+
+        newIndividual = problem.add(chosenIndividual, scaledMutation)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-39">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-39">&#182;</a>
+              </div>
+              <ul>
+<li>Perform crossover</li>
+</ul>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        newIndividual = problem.recombine(newIndividual, chosenIndividual, params)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-40">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-40">&#182;</a>
+              </div>
+              <p>Evaluate new individual</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        newIndividual.fitness = problem.fitness(newIndividual)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-41">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-41">&#182;</a>
+              </div>
+              <p>Add extra properties to new individual</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        newIndividual.generation = generation</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-42">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-42">&#182;</a>
+              </div>
+              <p>console.log currentBest, newIndividual
+console.log newIndividual.fitness, chosenIndividual.fitness </p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-43">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-43">&#182;</a>
+              </div>
+              <p>Perform selection operation</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>        <span class="hljs-keyword">if</span> newIndividual.fitness &lt; chosenIndividual.fitness 
+          newIndividual
+        <span class="hljs-keyword">else</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-44">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-44">&#182;</a>
+              </div>
+              <p>TODO this is bad as more and more of this guy will be in pop</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          chosenIndividual</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-45">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-45">&#182;</a>
+              </div>
+              <p>Next generation</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      generation++
+
+    
+
+    champion = <span class="hljs-property">@findFittest</span>(population)
+    champion.totalGenerations = generation
+
+    deferred.resolve champion
+
+    deferred.promise</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-46">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-46">&#182;</a>
+              </div>
+              <p>Exports.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-built_in">exports</span>.SimulatedAnnealing = SimulatedAnnealing
+<span class="hljs-built_in">exports</span>.Evolution = Evolution
+<span class="hljs-built_in">exports</span>.DifferentialEvolution = DifferentialEvolution</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
