@@ -12,3 +12,6 @@ ratings:
   - "**.coffee"
 exclude_paths:
 - test/
+- dist/
+- docs/
+- node_modules/
