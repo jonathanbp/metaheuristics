@@ -20,7 +20,7 @@
     "gulp-mocha": "^4.3.0",
     "gulp-run": "^1.6.8",
     "gulp-util": "^3.0.6",
-    "mocha": "~3.2.0",
+    "mocha": "~3.3.0",
     "supertest": "3.0.0",
     "traceur": "^0.0.111",
     "yargs": "^7.1.0"
