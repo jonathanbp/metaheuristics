@@ -3,7 +3,7 @@
     "test": "gulp test"
   },
   "dependencies": {
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.15",
     "paralleljs": "~0.2.1",
     "q": "^1.5.0"
   },
